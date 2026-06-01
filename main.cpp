@@ -11,14 +11,11 @@ typedef struct{
 
 void insertgoal(map<int,goal>& todolist);
 void updatestatus(map<int,goal>& todolist);
-void printpending(map<int,goal>& todolist);
-void printdone(map<int,goal>& todolist);
+void printasperstatus(map<int,goal>& todolist);
 void printtodolist(map<int,goal>& todolist);
 void saveToFile(map<int,goal>& todoList);
 void loadFromFile(map<int,goal>& todolist);
-void printeasy(map<int,goal>& todolist);
-void printmedium(map<int,goal>& todolist);
-void printhard(map<int,goal>& todolist);
+void printasperdifficulty(map<int,goal>& todolist);
 void removetask(map<int,goal>& todolist);
 string lower(string s);
 
@@ -26,20 +23,18 @@ int main(){
     map<int,goal> todolist;
 
     loadFromFile(todolist);
-    cout<<endl;
+    cin.clear();
+
     int choice;
     do{
-        cout<<"             ------TODO LIST MANAGER -------"<<endl;
+        cout<<endl<<"             ------TODO LIST MANAGER -------"<<endl;
         cout<<"             1.add new goal to TODO list"<<endl;
         cout<<"             2.update status of a goal"<<endl;
-        cout<<"             3.print goals which are completed"<<endl;
-        cout<<"             4.print goals which are not completed yet"<<endl;
-        cout<<"             5.print whole Todolist"<<endl;
-        cout<<"             6.print easy tasks"<<endl;
-        cout<<"             7.print medium tasks"<<endl;
-        cout<<"             8.print hard tasks"<<endl;
-        cout<<"             9.remove task"<<endl;
-        cout<<"             10.exit"<<endl<<endl;
+        cout<<"             3.print tasks as per status"<<endl;
+        cout<<"             4.print whole Todolist"<<endl;
+        cout<<"             5.print tasks as per difficulty "<<endl;
+        cout<<"             6.remove task"<<endl;
+        cout<<"             7.exit"<<endl<<endl;
 
         cout<<"enter your choice"<<endl;
 
@@ -62,27 +57,18 @@ int main(){
             updatestatus(todolist);
             break;
         case 3:
-            printdone(todolist);
+            printasperstatus(todolist);
             break;
         case 4:
-            printpending(todolist);
-            break;
-        case 5:
             printtodolist(todolist);
             break;
+        case 5:
+            printasperdifficulty(todolist);
+            break;
         case 6:
-            printeasy(todolist);
-            break;
-        case 7:
-            printmedium(todolist);
-            break;
-        case 8:
-            printhard(todolist);
-            break;
-        case 9:
             removetask(todolist);
             break;
-        case 10:
+        case 7:
             saveToFile(todolist);
             cout<<"data saved sucessfully"<<endl;
             break;
@@ -91,7 +77,7 @@ int main(){
             break;
         }
         cout<<endl<<endl;
-    }while(choice != 10);
+    }while(choice != 7);
     return 0;
 }
 
@@ -106,7 +92,14 @@ string lower(string s){
 void saveToFile(map<int, goal>& todolist) {
     ofstream outFile("todo_data.txt");
 
-    outFile << taskid << "\n"; 
+    if(!outFile) return;
+
+    long long nextbaseid = 1;
+    if (!todolist.empty()) {
+        nextbaseid = todolist.rbegin()->first + 1;
+    }
+
+    outFile << nextbaseid << "\n"; 
 
     for (auto& pair : todolist) {
         outFile << pair.first << "," 
@@ -140,6 +133,7 @@ void loadFromFile(map<int,goal>& todolist){
 
 void insertgoal(map<int,goal>& todolist){
     goal newgoal;
+
     cout<<"enter the name of your new task"<<endl;
     getline(cin,newgoal.name);
 
@@ -151,10 +145,16 @@ void insertgoal(map<int,goal>& todolist){
     } while (diff != "easy" && diff != "medium" && diff != "hard");
     newgoal.difficulty = diff;
 
+    cin.ignore(1000, '\n');
+
+    long long assignedid = 1;
+    while (todolist.count(assignedid) > 0) {
+        assignedid++;
+    }
+
     cout<<"status of new task will be set to pending by default"<<endl;
-    newgoal.status="Pending";
-    todolist[taskid]=newgoal;
-    taskid++;
+    newgoal.status="pending";
+    todolist[assignedid]=newgoal;
 }
 
 void updatestatus(map<int,goal>& todolist){
@@ -179,37 +179,30 @@ void updatestatus(map<int,goal>& todolist){
     todolist[id].status=str;
     cout<<"Updated Sucessfully"<<endl;
 }
-void printpending(map<int,goal>& todolist){
-    if(todolist.empty()){
-        cout<<"Your TodoList is empty"<<endl;
-        return;
-    }
-    bool found=false;
-    for(auto& task:todolist){
-        if(lower(task.second.status) == "pending"){
-            found=true;
-            cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<" Difficulty: "<<task.second.difficulty<<" Status: "<<task.second.status<<endl;
-        }
-    }
-    if(!found){
-        cout<<"There are no pending tasks for you "<<endl;
-    }
-}
 
-void printdone(map<int,goal>& todolist){
+void printasperstatus(map<int,goal>& todolist){
     if(todolist.empty()){
         cout<<"Your TodoList is empty"<<endl;
         return;
     }
+
+    string stat;
+    do{
+        cout<<"enter the status of tasks which u want to print"<<endl;
+        cin>>stat;
+        stat=lower(stat);
+    }while(stat!="done" && stat!="pending");
+
     bool found=false;
+
     for(auto& task:todolist){
-        if(lower(task.second.status) == "done"){
+        if(lower(task.second.status) == stat){
             found=true;
             cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<" Difficulty: "<<task.second.difficulty<<" Status: "<<task.second.status<<endl;
         }
     }
     if(!found){
-        cout<<"There are no completed tasks "<<endl;
+        cout<<"There are no tasks having status "<<stat<<endl;
     }
 }
 
@@ -224,15 +217,23 @@ void printtodolist(map<int,goal>& todolist){
     }
 }
 
-void printeasy(map<int,goal>& todolist){
+void printasperdifficulty(map<int,goal>& todolist){
     if(todolist.empty()){
         cout<<"Your todo list is Empty"<<endl;
         return;
     }
+
+    string diff;
+    do{
+        cout<<"enter the difficulty level of tasks which u want to print "<<endl;
+        cin>>diff;
+        diff=lower(diff);
+    }while(diff!="easy" && diff!="medium" && diff!="hard");
+
     int choice;
-    cout<<"                 1. print completed tasks with difficulty :: easy "<<endl;
-    cout<<"                 2. print all pending tasks with difficulty :: easy "<<endl;
-    cout<<"                 ***any numeric key to print all easy tasks"<<endl;
+    cout<<"                 1. print completed tasks with difficulty :: "<< diff <<" : "<<endl;
+    cout<<"                 2. print all pending tasks with difficulty :: "<<diff <<" : "<<endl;
+    cout<<"                 ***any numeric key to print all tasks with difficulty :: "<<diff<<" : "<<endl;
 
     cout<<"enter your choice"<<endl;
     cin>>choice;
@@ -243,166 +244,47 @@ void printeasy(map<int,goal>& todolist){
 
     switch(choice){
         case 1:
-            cout<<"Your completed tasks with difficulty level : easy are :: "<<endl;
+            cout<<"Your completed tasks with difficulty level : "<< diff <<" are :: "<<endl;
             for(auto& task: todolist){
-                if(lower(task.second.status) == "done" && lower(task.second.difficulty) == "easy"){
+                if(lower(task.second.status) == "done" && lower(task.second.difficulty) == diff){
                     found=true;
                     cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
                 }
             }
 
             if(!found){
-            cout<<"There are no completed tasks with difficulty level : easy in your todo list "<<endl;
+            cout<<"There are no completed tasks with difficulty level : " <<diff<< " in your todo list "<<endl;
             }
             break;
         case 2:
-            cout<<"Your pending tasks with difficulty level : easy are :: "<<endl;;
+            cout<<"Your pending tasks with difficulty level : "<<diff<<" are :: "<<endl;;
             for(auto& task: todolist){
-                if(lower(task.second.status) == "pending" && lower(task.second.difficulty) == "easy"){
+                if(lower(task.second.status) == "pending" && lower(task.second.difficulty) == diff){
                     found=true;
                     cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
                 }
             }
 
             if(!found){
-            cout<<"There are no pending tasks with difficulty level : easy in your todo list "<<endl;
+            cout<<"There are no pending tasks with difficulty level : "<<diff<<" in your todo list "<<endl;
             }
             break;
         default:
-            cout<<"Your tasks with difficulty level : easy are :: "<<endl;
+            cout<<"Your tasks with difficulty level : " <<diff<<" are :: "<<endl;
             for(auto& task: todolist){
-                if(lower(task.second.difficulty) == "easy"){
+                if(lower(task.second.difficulty) == diff){
                     found=true;
                     cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
                 }
             }
 
             if(!found){
-            cout<<"There are no tasks with difficulty level : easy in your todo list "<<endl;
+            cout<<"There are no tasks with difficulty level : "<<diff<<" in your todo list "<<endl;
             }
             break;
     }
 }
 
-void printmedium(map<int,goal>& todolist){
-    if(todolist.empty()){
-        cout<<"Your todo list is Empty"<<endl;
-        return;
-    }
-    int choice;
-    cout<<"                 1. print completed tasks with difficulty :: medium "<<endl;
-    cout<<"                 2. print all pending tasks with difficulty :: medium "<<endl;
-    cout<<"                 ***any numeric key to print all medium tasks"<<endl;
-
-    cout<<"enter your choice"<<endl;
-    cin>>choice;
-
-    cin.ignore(1000,'\n');
-
-    bool found=false;
-
-    switch(choice){
-        case 1:
-            cout<<"Your completed tasks with difficulty level : medium are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.status) == "done" && lower(task.second.difficulty) == "medium"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no completed tasks with difficulty level : medium "<<endl;
-            }
-            break;
-        case 2:
-            cout<<"Your pending tasks with difficulty level : medium are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.status) == "pending" && lower(task.second.difficulty) == "medium"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no pending tasks with difficulty level : medium "<<endl;
-            }
-            break;
-        default:
-            cout<<"Your tasks with difficulty level : medium are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.difficulty) == "medium"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no tasks with difficulty level : medium"<<endl;
-            }
-            break;
-    }
-}
-
-void printhard(map<int,goal>& todolist){
-    if(todolist.empty()){
-        cout<<"Your todo list is Empty"<<endl;
-        return;
-    }
-    int choice;
-    cout<<"                 1. print completed  tasks with difficulty :: hard"<<endl;
-    cout<<"                 2. print pending  tasks with difficulty :: hard "<<endl;
-    cout<<"                 ***any numeric key to print all hard tasks"<<endl;
-
-    cout<<"enter your choice"<<endl;
-    cin>>choice;
-
-    cin.ignore(1000,'\n');
-
-    bool found=false;
-
-    switch(choice){
-        case 1:
-            cout<<"Your completed tasks with difficulty level : hard are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.status) == "done" && lower(task.second.difficulty) == "hard"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no completed tasks with difficulty level : hard "<<endl;
-            }
-            break;
-        case 2:
-            cout<<"Your pending tasks with difficulty level : hard are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.status) == "pending" && lower(task.second.difficulty) == "hard"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no pending tasks with difficulty level : hard "<<endl;
-            }
-            break;
-        default:
-            cout<<"Your tasks with difficulty level : hard are :: "<<endl;
-            for(auto& task: todolist){
-                if(lower(task.second.difficulty) == "hard"){
-                    found=true;
-                    cout<<"Task ID: "<<task.first<<" Task: "<<task.second.name<<endl;
-                }
-            }
-
-            if(!found){
-            cout<<"There are no tasks with difficulty level : hard"<<endl;
-            }
-            break;
-    }
-}
 
 void removetask(map<int,goal>& todolist){
     if(todolist.empty()){

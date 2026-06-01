@@ -1,5 +1,6 @@
-7
-2,eating,easy,Pending
-3,coding,hard,Pending
-4,reading,hard,Pending
-5,doing mothing,easy,Pending
+6
+1,typing,easy,pending
+2,watching,medium,pending
+3,coding,hard,pending
+4,1,easy,pending
+5,doing nothing,easy,pending
