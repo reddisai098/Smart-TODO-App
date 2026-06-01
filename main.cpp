@@ -141,11 +141,10 @@ void insertgoal(map<int,goal>& todolist){
     do {
         cout << "Enter difficulty of your task i.e. easy/medium/hard : ";
         cin >> diff;
+        cin.ignore(1000, '\n');
         diff = lower(diff);
     } while (diff != "easy" && diff != "medium" && diff != "hard");
     newgoal.difficulty = diff;
-
-    cin.ignore(1000, '\n');
 
     long long assignedid = 1;
     while (todolist.count(assignedid) > 0) {
@@ -176,6 +175,7 @@ void updatestatus(map<int,goal>& todolist){
     string str;
     cout<<"enter the status which you wnat to set to this task either Done or Pending"<<endl;
     cin>>str;
+    cin.ignore(1000, '\n');
     todolist[id].status=str;
     cout<<"Updated Sucessfully"<<endl;
 }
